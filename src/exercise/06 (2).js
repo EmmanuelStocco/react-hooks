@@ -11,55 +11,26 @@ import {PokemonForm, fetchPokemon, PokemonInfoFallback, PokemonDataView} from '.
 function PokemonInfo({pokemonName}) {
   // 🐨 Have state for the pokemon (null)
   const [pokemon, setPokemon] = React.useState(null)
-  const [error, setError] = React.useState(null)
-  const [status, setStatus] = React.useState('idle') //
 
   React.useEffect(() => {
 
-    if(pokemon === '') return //nome vazio, faz nada 
+    if(pokemonName === '') return   // Nome vazio, retorna sem fazer nada
 
-    //Resetar o estado do pokemon
+    // Resetar o estado do pokemon
     setPokemon(null)
-    setError(null)
-
-    const pokemonData = fetchPokemon (pokemonName) //Chamada da API
-    setPokemon(pokemonData) //atualizar o estado com dados atualizados 
 
     /*
-    JS de forma assicrona 
-    //atualiza dados retornados da APi
+    // Essa abordagem não funciona porque o JS trabalha de forma ASSÍNCRONA
+    const pokemonData = fetchPokemon(pokemonName)   // Chamada da API
+    setPokemon(pokemonData)     // Atualizar o estado com os dados retornados da API
     */
-    //Callback é uma fução executada pela func assincrona assim q a tarefa for finalizada
+    // Callback é um função que será executada pela função assíncrona assim que ela
+    // tiver terminado de fazer sua tarefa
+    fetchPokemon(pokemonName).then(     // Callback
+        pokemonData => setPokemon(pokemonData)
+    )
 
-/*
-    fetchPokemon (pokemonName)
-    .then(
-        pokemonData => setPokemon (pokemonData)
-    )
-    .catch(
-        erro => alert.apply(erro.message)
-    )
   }, [pokemonName])
-*/
-
-
-
-  async function getPokemonFromServer(){
-    try{ //Tenta fazer a chamada do serv remoto da api
-        setStatus ('pending')
-        const pokemonData = await fetchPokemon(pokemonName)
-        setPokemon(pokemonData)
-        setStatus('resolved')
-    } catch (erro) {
-        setError(erro)
-        setStatus('rejected')
-     }
-    }
-    //Chamada da funç assincrona
-    getPokemonFromServer()
-
-}, [pokemonName])
-
 
   // 🐨 use React.useEffect where the callback should be called whenever the
   // pokemon name changes.
@@ -75,28 +46,17 @@ function PokemonInfo({pokemonName}) {
   //   2. pokemonName but no pokemon: <PokemonInfoFallback name={pokemonName} />
   //   3. pokemon: <PokemonDataView pokemon={pokemon} />
 
-    switch(status){
-    case 'idle':
-            return'Submit a pokemon'
-    case'rejected': 
-        return (
-        <div role="alert">
-              There was an error: <pre style= {{whitSpace: 'normal'}}>{error.message}</pre> 
-         </div>
-        )
-    case 'pending':
-        return <PokemonInfoFallback name={pokemonName}  />
-    case 'resolved' :
-        return <PokemonDataView pokemon={pokemon} />
-    }
+    if(! pokemonName) return 'Submit a pokemon'
+    else if(pokemonName && !pokemon) return <PokemonInfoFallback name={pokemonName} />
+    else return <PokemonDataView pokemon={pokemon} />
 
+}
 
 function App() {
   const [pokemonName, setPokemonName] = React.useState('')
 
   function handleSubmit(newPokemonName) {
     setPokemonName(newPokemonName)
-    if(!newPokemonName) setStatus('idle')
   }
 
   return (
@@ -110,4 +70,4 @@ function App() {
   )
 }
 
-//export default App()
+export default App
